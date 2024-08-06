@@ -1,0 +1,11 @@
+curl -XPOST -H "Content-Type: application/json-rpc" -d '
+{
+    "jsonrpc": "2.0",
+    "method": "user.login",
+    "params": {
+        "user": "Admin",
+        "password": "zabbix"
+    },
+    "id": 1,
+    "auth": null
+}' http://172.25.1.1/zabbix/api_jsonrpc.php | python -m json.tool

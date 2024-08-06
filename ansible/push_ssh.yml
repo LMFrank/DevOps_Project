@@ -1,0 +1,10 @@
+---
+- name: 推送SSH公钥到worker组的所有主机
+  hosts: workers
+  gather_facts: no
+  tasks:
+    - name: 复制公钥到远程主机的authorized_keys
+      ansible.builtin.authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

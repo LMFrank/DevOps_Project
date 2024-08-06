@@ -1,0 +1,95 @@
+---
+- hosts: websrvs
+  remote_user: root
+ 
+  tasks:
+      - name: create new file
+        file: name=/data/newfile state=directory recurse=yes
+      - name: create new user
+        user: name=test2 system=yes shell=/sbin/nologin
+      - name: install package
+        yum: name=httpd
+      - name: copy html
+        copy: src=/var/www/html/index.html dest=/var/www/html/
+      - name: start service
+        service: name=httpd state=started enabled=yes
+
+
+
+---
+- hosts: websrvs
+  remote_user: root
+ 
+  tasks:
+    - name: create new file
+      file: name=/data/newfile state=directory recurse=yes
+    - name: create new user
+      user: name=test2 system=yes shell=/sbin/nologin
+    - name: install package
+      yum: name=httpd
+    - name: copy html
+      copy: src=/var/www/html/index.html dest=/var/www/html/
+      copy: src=/var/www/html/test.html dest=/var/www/html/
+    - name: start service
+      service: name=httpd state=started enabled=yes
+
+
+---
+- hosts: websrvs
+  remote_user: root
+ 
+  tasks:
+    - name: create new file
+      file: name=/data/newfile state=directory recurse=yes
+    - name: create new user
+      user: name=test2 system=yes shell=/sbin/nologin
+    - name: install package
+      yum: name=httpd
+    - name: copy html
+      copy: src=files/index.html dest=/var/www/html/
+    - name: copy test html
+      copy: src=files/test.html dest=/var/www/html/
+    - name: start service
+      service: name=httpd state=started enabled=yes
+
+      
+
+---
+- hosts: websrvs
+  remote_user: root
+ 
+  tasks:
+    - name: install httpd package
+      yum: name=httpd
+      tags: inshttpd
+    - name: copy conf file
+      copy: src=files/httpd.conf dest=/etc/httpd/conf/ backup=yes
+      notify: restart service
+    - name: start service
+      service: name=httpd state=started enabled=yes
+      tags: rshttpd
+ 
+  handlers:
+    - name: restart service
+      service: name=httpd state=restarted
+
+
+---
+- hosts: appsrvs
+  remote_user: root
+ 
+  tasks:
+    - name: install  package
+      yum: name={{ pkname }}
+    - name: start service
+      service: name={{ pkname }} state=started enabled=yes
+
+
+
+---
+- hosts: websrvs
+  remote_user: root
+ 
+  tasks:
+    - name: create log file
+      file: name=/data/{{ ansible_fqdn }}.log state=touch mode=600 owner=lxm
