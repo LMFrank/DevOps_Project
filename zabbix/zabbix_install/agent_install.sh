@@ -40,4 +40,6 @@ sed -i "s/^Server=.*/Server=${ZABBIX_SERVER_IP}/" "$CONFIG_FILE" || { echo "配�
 sed -i "s/^ServerActive=.*/ServerActive=${ZABBIX_SERVER_IP}/" "$CONFIG_FILE" || { echo "配置 ServerActive 失败"; exit 1; }
 sed -i "s/^Hostname=.*/Hostname=${INTERNAL_IP}/" "$CONFIG_FILE" || { echo "配置 Hostname 失败"; exit 1; }
 
+systemctl restart zabbix-agent || { echo "启动 Zabbix 代理服务失败"; exit 1; }
+
 echo "Zabbix 代理已部署在 $INTERNAL_IP"

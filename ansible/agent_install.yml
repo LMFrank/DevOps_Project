@@ -1,0 +1,19 @@
+---
+- name: 执行 agent_install.sh 脚本
+  hosts: workers
+  tasks:
+    - name: 将 agent_install.sh 脚本复制到远程主机
+      ansible.builtin.copy:
+        src: /home/zabbix/agent_install.sh
+        dest: /tmp/agent_install.sh
+        mode: '0755'  # 设置为可执行
+
+    - name: 执行 agent_install.sh 脚本
+      ansible.builtin.command: /tmp/agent_install.sh
+      args:
+        chdir: /tmp  # 可选，如果需要在特定目录执行脚本
+
+    - name: 清理脚本文件
+      ansible.builtin.file:
+        path: /tmp/agent_install.sh
+        state: absent  # 执行完毕后删除脚本文件
