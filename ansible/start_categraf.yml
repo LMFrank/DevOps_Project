@@ -1,0 +1,35 @@
+---
+- name: Deploy Categraf to Group Hosts
+  hosts: workers
+  become: yes  # 使用 root 权限执行任务
+  tasks:
+    - name: Push categraf tar.gz to /opt directory
+      copy:
+        src: /opt/categraf-v0.3.76-linux-amd64.tar.gz
+        dest: /opt/categraf-v0.3.76-linux-amd64.tar.gz
+        owner: root
+        group: root
+
+    - name: Extract categraf tar.gz
+      unarchive:
+        src: /opt/categraf-v0.3.76-linux-amd64.tar.gz
+        dest: /opt
+
+    - name: Set executable permission for categraf binary
+      file:
+        path: /opt/categraf-v0.3.76-linux-amd64
+        state: directory
+        mode: '0755'
+
+    - name: Change to categraf directory
+      shell: cd /opt/categraf-v0.3.76-linux-amd64
+
+    - name: Execute categraf install
+      command: ./categraf --install
+      args:
+        chdir: /opt/categraf-v0.3.76-linux-amd64
+
+    - name: Execute categraf start
+      command: ./categraf --start
+      args:
+        chdir: /opt/categraf-v0.3.76-linux-amd64
