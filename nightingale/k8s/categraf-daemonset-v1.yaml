@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: categraf-daemonset
+  name: categraf-daemonset
+spec:
+  selector:
+    matchLabels:
+      app: categraf-daemonset
+  template:
+    metadata:
+      labels:
+        app: categraf-daemonset
+    spec:
+      containers:
+      - env:
+        - name: TZ
+          value: Asia/Shanghai
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: HOSTIP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        image: flashcatcloud/categraf:v0.3.76
+        imagePullPolicy: IfNotPresent
+        name: categraf
+        volumeMounts:
+        - mountPath: /etc/categraf/conf
+          name: categraf-config
+        - mountPath: /etc/categraf/conf/input.prometheus
+          name: categraf-input-prometheus
+      hostNetwork: true
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - configMap:
+          name: categraf-config
+        name: categraf-config
+      - configMap:
+          name: categraf-input-prometheus
+        name: categraf-input-prometheus

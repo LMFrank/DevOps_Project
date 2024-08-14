@@ -1,0 +1,29 @@
+---
+kind: ConfigMap
+metadata:
+  name: categraf-config
+apiVersion: v1
+data:
+  config.toml: |
+    [global]
+    hostname = "$HOSTNAME"
+    interval = 15
+    providers = ["local"]
+    [writer_opt]
+    batch = 2000
+    chan_size = 10000
+    [[writers]]
+    url = "http://172.16.2.138:19000/prometheus/v1/write"
+    timeout = 5000
+    dial_timeout = 2500
+    max_idle_conns_per_host = 100    
+---
+kind: ConfigMap
+metadata:
+  name: categraf-input-prometheus
+apiVersion: v1
+data:
+  prometheus.toml: |
+    [[instances]]
+    urls = ["http://127.0.0.1:10249/metrics"]
+    labels = { job="kube-proxy" } 
