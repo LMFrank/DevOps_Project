@@ -1,0 +1,15 @@
+---
+- name: Configure YUM repository mirror
+  hosts: workers
+  become: true
+  tasks:
+    - name: Update Rocky Linux repository configuration
+      ansible.builtin.shell: |
+        sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+            -e 's|^#baseurl=http://dl.rockylinux.org/$contentdir|baseurl=https://mirrors.aliyun.com/rockylinux|g' \
+            -i.bak /etc/yum.repos.d/Rocky*.repo
+      notify: update_dnf_cache
+
+  handlers:
+    - name: update_dnf_cache
+      ansible.builtin.command: dnf makecache
