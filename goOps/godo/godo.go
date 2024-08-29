@@ -1,13 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/shirou/gopsutil/v3/cpu"
-	"os"
+	"github.com/shirou/gopsutil/v3/mem"
+	"log"
 	"time"
 )
 
-func getCPUUsage() (float64, error) {
+type Monitor interface {
+	GetUsage() (float64, error)
+}
+
+type CPUMonitor struct{}
+
+func (m CPUMonitor) GetUsage() (float64, error) {
 	perc, err := cpu.Percent(1*time.Second, false)
 	if err != nil {
 		return 0, nil
@@ -15,15 +23,43 @@ func getCPUUsage() (float64, error) {
 	return perc[0], nil
 }
 
+type MemoryMonitor struct{}
+
+func (m MemoryMonitor) GetUsage() (float64, error) {
+	vm, err := mem.VirtualMemory()
+	if err != nil {
+		return 0, nil
+	}
+	usagePercent := float64(vm.Used) / float64(vm.Total) * 100
+	return usagePercent, nil
+}
+
+func MonitorFactory(monitorType string) Monitor {
+	switch monitorType {
+	case "cpu":
+		return CPUMonitor{}
+	case "memory":
+		return MemoryMonitor{}
+	default:
+		log.Fatalf("Unsupported monitor type: %s", monitorType)
+		return nil
+	}
+}
+
 func main() {
-	if len(os.Args) < 2 || os.Args[1] != "cpu" {
-		fmt.Println("Usage: ./godo cpu")
-		os.Exit(1)
+	monitorTypePtr := flag.String("type", "", "Monitor type(cpu|memory)")
+	flag.Parse()
+
+	if *monitorTypePtr == "" {
+		flag.Usage()
+		log.Fatalf("Error: You must specify the monitor type with -type flag")
 	}
 
-	usage, err := getCPUUsage()
+	monitor := MonitorFactory(*monitorTypePtr)
+	usage, err := monitor.GetUsage()
 	if err != nil {
-		fmt.Printf("Error retrieving CPU usage: %v\n", err)
+		log.Fatalf("Error getting usage: %v", err)
 	}
-	fmt.Printf("CPU usage: %.2f%%\n", usage)
+
+	fmt.Printf("Monitor Usage: %.2f%%\n", usage)
 }
