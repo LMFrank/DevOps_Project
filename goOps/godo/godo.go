@@ -1,16 +1,21 @@
 package main
 
 import (
-	"flag"
-	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"log"
+	"net/http"
 	"time"
 )
 
 type Monitor interface {
 	GetUsage() (float64, error)
+}
+
+type MonitorResponse struct {
+	Usage float64 `json:"usage"`
+	Error string  `json:"error,omitempty"`
 }
 
 type CPUMonitor struct{}
@@ -34,32 +39,31 @@ func (m MemoryMonitor) GetUsage() (float64, error) {
 	return usagePercent, nil
 }
 
-func MonitorFactory(monitorType string) Monitor {
-	switch monitorType {
-	case "cpu":
-		return CPUMonitor{}
-	case "memory":
-		return MemoryMonitor{}
-	default:
-		log.Fatalf("Unsupported monitor type: %s", monitorType)
-		return nil
+func monitorHandler(c *gin.Context, monitor Monitor) {
+	usage, err := monitor.GetUsage()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, MonitorResponse{Error: err.Error()})
+		return
 	}
+	c.JSON(http.StatusOK, MonitorResponse{Usage: usage})
 }
 
 func main() {
-	monitorTypePtr := flag.String("type", "", "Monitor type(cpu|memory)")
-	flag.Parse()
+	r := gin.Default()
 
-	if *monitorTypePtr == "" {
-		flag.Usage()
-		log.Fatalf("Error: You must specify the monitor type with -type flag")
-	}
+	r.GET("/cpu", func(c *gin.Context) {
+		monitor := CPUMonitor{}
+		monitorHandler(c, monitor)
+	})
 
-	monitor := MonitorFactory(*monitorTypePtr)
-	usage, err := monitor.GetUsage()
+	r.GET("/mem", func(c *gin.Context) {
+		monitor := MemoryMonitor{}
+		monitorHandler(c, monitor)
+	})
+
+	log.Printf("Server starting on port 8080...")
+	err := r.Run(":8080")
 	if err != nil {
-		log.Fatalf("Error getting usage: %v", err)
+		return
 	}
-
-	fmt.Printf("Monitor Usage: %.2f%%\n", usage)
 }
