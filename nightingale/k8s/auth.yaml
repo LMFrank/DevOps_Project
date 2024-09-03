@@ -1,0 +1,42 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: categraf-daemonset
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes/metrics
+  - nodes/stats
+  - nodes/proxy
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: categraf-daemonset
+  namespace: flashcat
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: categraf-daemonset
+  namespace: flashcat
+  annotations:
+    kubernetes.io/service-account.name: "categraf-daemonset"
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: categraf-daemonset
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: categraf-daemonset
+subjects:
+- kind: ServiceAccount
+  name: categraf-daemonset
+  namespace: flashcat

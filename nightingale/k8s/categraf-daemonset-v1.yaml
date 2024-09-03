@@ -36,6 +36,7 @@ spec:
         - mountPath: /etc/categraf/conf/input.prometheus
           name: categraf-input-prometheus
       hostNetwork: true
+      serviceAccountName: categraf-daemonset
       restartPolicy: Always
       tolerations:
       - effect: NoSchedule
