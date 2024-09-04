@@ -1,0 +1,1 @@
+token=$(kubectl get secret categraf-secret -n flashcat -o jsonpath={.data.token} | base64 -d) && echo "$token" > /var/run/secrets/kubernetes.io/serviceaccount/token

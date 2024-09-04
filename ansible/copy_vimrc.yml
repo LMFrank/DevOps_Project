@@ -1,0 +1,16 @@
+---
+- name: Copy .vimrc and source it
+  hosts: all
+  become: yes  # 使用 become 来获取必要的权限，如果需要的话
+  tasks:
+    - name: Copy .vimrc to remote machine
+      copy:
+        src: "~/.vimrc"
+        dest: "~/.vimrc"
+        mode: '0600'
+      register: vimrc_copied
+
+    - name: Source .vimrc
+      command: source ~/.vimrc
+      when: vimrc_copied.changed
+      ignore_errors: true  # 如果 source 不能作为一个命令执行，忽略错误
