@@ -1,6 +1,6 @@
 ---
 - name: 执行 agent_install.sh 脚本
-  hosts: workers
+  hosts: ecs
   tasks:
     - name: 将 agent_install.sh 脚本复制到远程主机
       ansible.builtin.copy:
